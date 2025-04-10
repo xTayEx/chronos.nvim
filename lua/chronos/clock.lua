@@ -123,7 +123,7 @@ end
 
 function Clock:start()
   local display, win_width, win_height =
-      build_clock_display(tostring(os.date(self.opts.time_format)))
+    build_clock_display(tostring(os.date(self.opts.time_format)))
   local ok, win_id, buf_id = self:open_clock_win(display, win_width, win_height, self.opts)
   self.win_id = win_id
   self.buf_id = buf_id

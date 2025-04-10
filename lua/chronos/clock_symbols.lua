@@ -91,7 +91,6 @@ M.colon = [[
 ╚═╝
 ]]
 
-
 ---@class SymbolDimension
 ---@field width integer
 ---@field height integer
@@ -131,7 +130,6 @@ function Symbol:get_dimensions()
 
   return { width = char_width, byte_width = byte_width, height = #lines }
 end
-
 
 ---@param width integer
 ---@param height integer
@@ -190,9 +188,5 @@ end
 
 M.Symbol = Symbol
 M.concat_symbols = concat_symbols
-
--- local sym0 = Symbol:new("9", M.digits, M.colon)
--- sym0:pad_to_cell(M.DIGITS_MAX_WIDTH, 8)
--- sym0:print()
 
 return M
