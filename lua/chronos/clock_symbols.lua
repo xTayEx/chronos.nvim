@@ -82,6 +82,7 @@ M.digits = {
  ╚════╝
   ]],
 }
+M.DIGITS_MAX_WIDTH = 10
 
 M.colon = [[
 ██╗
@@ -89,6 +90,7 @@ M.colon = [[
 ██╗
 ╚═╝
 ]]
+
 
 ---@class SymbolDimension
 ---@field width integer
@@ -99,13 +101,17 @@ M.colon = [[
 local Symbol = {}
 
 ---@param ori_symbol string
-function Symbol:new(ori_symbol, o)
+function Symbol:new(ori_symbol, digits, colon, o)
   o = o or {}
   if ori_symbol ~= ":" then
-    o.symbol = M.digits[tonumber(ori_symbol) + 1]
+    o.symbol = digits[tonumber(ori_symbol) + 1]
   else
-    o.symbol = M.colon
+    o.symbol = colon
   end
+  o.ori_symbol = ori_symbol
+  o.digits = digits
+  o.colon = colon
+
   self.__index = self
   return setmetatable(o, self)
 end
@@ -126,6 +132,7 @@ function Symbol:get_dimensions()
   return { width = char_width, byte_width = byte_width, height = #lines }
 end
 
+
 ---@param width integer
 ---@param height integer
 function Symbol:pad_to_cell(width, height)
@@ -134,10 +141,16 @@ function Symbol:pad_to_cell(width, height)
   height = vim.fn.max({ height, dimension.height })
 
   local lines = vim.split(self.symbol, "\n", { trimempty = true })
-  -- pad width
+
+  -- pad tail for alignment
   for i = 1, #lines do
     local visual_width = vim.api.nvim_strwidth(lines[i])
-    lines[i] = lines[i] .. string.rep(" ", width - visual_width)
+    lines[i] = lines[i] .. string.rep(" ", dimension.width - visual_width)
+  end
+
+  -- pad width
+  for i = 1, #lines do
+    lines[i] = string.rep(" ", width - dimension.width) .. lines[i]
   end
 
   -- pad height
@@ -168,7 +181,7 @@ local concat_symbols = function(symbols)
       line = line .. vim.split(symbol.symbol, "\n")[i]
     end
     string.gsub(line, "\n", " ")
-    line = line .. "\n"
+    -- line = line .. "\n"
     lines[#lines + 1] = line
   end
 
@@ -178,23 +191,8 @@ end
 M.Symbol = Symbol
 M.concat_symbols = concat_symbols
 
-local sym1 = Symbol:new("1")
-local sym2 = Symbol:new("2")
-local syms = { sym1, sym2 }
-local max_height = 1
-for _, symbol in ipairs(syms) do
-  local dimension = symbol:get_dimensions()
-  max_height = vim.fn.max({ max_height, dimension.height })
-end
+-- local sym0 = Symbol:new("9", M.digits, M.colon)
+-- sym0:pad_to_cell(M.DIGITS_MAX_WIDTH, 8)
+-- sym0:print()
 
-for _, symbol in ipairs(syms) do
-  local dimension = symbol:get_dimensions()
-  local width = dimension.width
-
-  symbol:pad_to_cell(width + 1, max_height)
-end
-
-local lines = concat_symbols(syms)
-vim.print(table.concat(lines, ""))
-
--- return M
+return M
