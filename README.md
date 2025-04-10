@@ -1,33 +1,16 @@
-# nvim-plugin-template
+# chronos.nvim
 
-Neovim plugin template; includes automatic documentation generation from README, integration tests with Busted, and linting with Stylua
+A simple plugin to show a clock in a floating window. I create this plugin just for fun 😊.
 
 ## Usage
 
-1. Click `use this template` button generate a repo on your github.
-2. Clone your plugin repo. Open terminal then cd plugin directory.
-3. Run `python3 rename.py your-plugin-name`. This will replace all `nvim-plugin-template` to your `plugin-name`. 
-   Then it will prompt you input `y` or `n` to remove example codes in `init.lua` and
-   `test/plugin_spec.lua`. If you are familiar this repo just input `y`. If you are looking at this template for the first time I suggest you inspect the contents. After this step `rename.py` will also auto-remove.
+- `:ChronosOpen`: Open the clock.
+- `:ChronosClose`: Close the clock.
 
-Now you have a clean plugin environment. Enjoy!
+## Dependencies
+No extra dependencies (as for now). Only tested on neovim v0.11.0. Older version may work.
 
-## Format
-
-The CI uses `stylua` to format the code; customize the formatting by editing `.stylua.toml`.
-
-## Test
-
-See [Running tests locally](https://github.com/nvim-neorocks/nvim-busted-action?tab=readme-ov-file#running-tests-locally)
-
-## CI
-
-- Auto generates doc from README.
-- Runs the [nvim-busted-action](https://github.com/nvim-neorocks/nvim-busted-action) for test.
-- Lints with `stylua`.
-
-## More
-
-To see this template in action, take a look at my other plugins.
-
-## License MIT
+## Roadmap
+- [ ] More clock styles.
+- [ ] Support alarm with audio.
+- [ ] Support different clock location.
