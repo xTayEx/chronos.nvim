@@ -1,25 +1,33 @@
-name: Run tests
-on:
-  pull_request: ~
-  push:
-    branches:
-      - main
+---
+on: [push, pull_request]
+name: lint-test
 
 jobs:
-  build:
-    name: Run tests
+  stylua:
+    name: stylua
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: JohnnyMorganz/stylua-action@v3
+        with:
+          version: latest
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --color always --check lua
+
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        neovim_version: ['nightly', 'stable']
-
+        nvim-versions: ['stable', 'nightly']
+    name: test
     steps:
-      - uses: actions/checkout@v4
-      - name: Download stylua
-        shell: bash
-        run: |
-          wget "https://github.com/JohnnyMorganz/StyLua/releases/download/v0.18.0/stylua-linux.zip" -P /home/runner/.local/bin
-          unzip /home/runner/.local/bin/stylua-linux.zip -d /home/runner/.local/bin
-          chmod +x /home/runner/.local/bin/stylua
-      - name: Run tests
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.nvim-versions }}
+
+      - name: run tests
         run: make test
