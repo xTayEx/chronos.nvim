@@ -22,6 +22,4 @@ jobs:
           unzip /home/runner/.local/bin/stylua-linux.zip -d /home/runner/.local/bin
           chmod +x /home/runner/.local/bin/stylua
       - name: Run tests
-        uses: nvim-neorocks/nvim-busted-action@v1
-        with:
-          nvim_version: ${{ matrix.neovim_version }}
+        run: make test
