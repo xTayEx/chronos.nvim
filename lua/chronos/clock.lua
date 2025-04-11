@@ -6,6 +6,7 @@ local digits = require("chronos.clock_symbols").digits
 local colon = require("chronos.clock_symbols").colon
 local DIGITS_MAX_WIDTH = require("chronos.clock_symbols").DIGITS_MAX_WIDTH
 local notify = require("chronos.utils").notify
+local parse_time = require("chronos.utils").parse_time
 
 ---@param time_str string
 ---@return table
@@ -47,16 +48,23 @@ local build_clock_display = function(time_str)
   return lines, win_width, max_height
 end
 
+---@class AlarmOpts
+---@field alarm_path string
+---@field alarm_text string
+
 ---@class ClockOpts
 ---@filed style string
 ---@field loc_preset string
 ---@field win table
+---@field alarm_opts AlarmOpts
 
 ---@class Clock
 ---@field opts ClockOpts
 ---@field buf_id integer|nil
 ---@field win_id integer|nil
 ---@field timer uv.uv_timer_t|nil
+---@field alarm_time integer|nil
+---@field alarm_opts AlarmOpts|nil
 local Clock = {}
 
 ---@param o? table
@@ -68,6 +76,8 @@ function Clock:new(opts, o)
   o.buf_id = nil
   o.win_id = nil
   o.timer = nil
+  o.alarm_time = nil
+  o.alarm_opts = opts.alarm_opts
   self.__index = self
   return setmetatable(o, { __index = Clock })
 end
@@ -118,7 +128,7 @@ function Clock:open_clock_win(time_symbols, win_width, win_height)
   self.opts.win.anchor = "NW"
 
   local loc_preset =
-    get_win_loc_presets(win_width, win_height, ui.width, ui.height)[self.opts.loc_preset]
+      get_win_loc_presets(win_width, win_height, ui.width, ui.height)[self.opts.loc_preset]
   local win_config = vim.tbl_extend("force", {
     relative = "editor",
     width = win_width,
@@ -209,9 +219,46 @@ function Clock:start()
     1000,
     vim.schedule_wrap(function()
       self:update_clock_win(buf_id)
+      self:check_alarm()
     end)
   )
 end
+
+---@param alarm_time string
+function Clock:set_alarm_at(alarm_time)
+  local pattern = "^(%d+):(%d+)$"
+  local hour, min = alarm_time:match(pattern)
+  if not hour or not min then
+    notify("Invalid time format! Use %H:%M", vim.log.levels.ERROR)
+    return
+  end
+
+  hour, min = tonumber(hour), tonumber(min)
+  if hour < 0 or hour >= 24 or min < 0 or min >= 60 then
+    notify("Invalid time format!", vim.log.levels.ERROR)
+  end
+
+  vim.print(alarm_time)
+  self.alarm_time = parse_time(alarm_time)
+  vim.print(self.alarm_time)
+end
+
+function Clock:check_alarm()
+  if self.alarm_time == nil then
+    return
+  end
+  local current = os.time()
+  if current == self.alarm_time then
+    notify(self.alarm_opts.alarm_text, vim.log.levels.INFO)
+    vim.system({ "mpv", self.alarm_opts.alarm_path }, {}, function(obj)
+      if obj.code ~= 0 then
+        notify("Failed to play the alarm sound using mpv!", vim.log.levels.ERROR)
+      end
+    end)
+    self.alarm_time = nil
+  end
+end
+
 
 M.Clock = Clock
 
