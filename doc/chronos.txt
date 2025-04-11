@@ -6,6 +6,7 @@ Table of Contents                                  *chronos-table-of-contents*
 1. chronos.nvim                                         |chronos-chronos.nvim|
   - Usage                                         |chronos-chronos.nvim-usage|
   - Dependencies                           |chronos-chronos.nvim-dependencies|
+  - Configuration                         |chronos-chronos.nvim-configuration|
   - Roadmap                                     |chronos-chronos.nvim-roadmap|
 
 ==============================================================================
@@ -25,6 +26,23 @@ DEPENDENCIES                               *chronos-chronos.nvim-dependencies*
 
 No extra dependencies (as for now). Only tested on neovim v0.11.0. Older
 version may work.
+
+
+CONFIGURATION                             *chronos-chronos.nvim-configuration*
+
+chronos.nvim comes with the following default configuration.
+
+>lua
+    {
+      win = {
+        relative = "editor",
+        anchor = "NW",
+        style = "minimal",
+        border = "rounded",
+        --- (the same as opts for `nvim_open_win`, except `col`, `row`, `width` and `height`)
+      }
+    }
+<
 
 
 ROADMAP                                         *chronos-chronos.nvim-roadmap*
