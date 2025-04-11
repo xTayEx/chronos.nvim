@@ -33,7 +33,6 @@ M.parse_time = function(time)
     min = min,
     sec = 0,
   })
-  vim.print("after parse: " .. ret)
   return ret
 end
 

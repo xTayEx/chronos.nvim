@@ -4,6 +4,7 @@ load(vim.fn.system("curl -s https://raw.githubusercontent.com/folke/lazy.nvim/ma
 local plugins = {
   {
     dir = ".",
+    opts = {}
   },
   { "nvim-lua/plenary.nvim" },
 }

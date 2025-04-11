@@ -8,6 +8,15 @@ local DIGITS_MAX_WIDTH = require("chronos.clock_symbols").DIGITS_MAX_WIDTH
 local notify = require("chronos.utils").notify
 local parse_time = require("chronos.utils").parse_time
 
+---@param timer uv.uv_timer_t|nil
+local stop_and_close_timer = function(timer)
+  if timer ~= nil then
+    timer:stop()
+    timer:close()
+    timer = nil
+  end
+end
+
 ---@param time_str string
 ---@return table
 ---@return integer win_width
@@ -111,6 +120,7 @@ local get_win_loc_presets = function(win_width, win_height, ui_width, ui_height)
   }
 end
 
+--- TODO: After pressing `q` in the clock window, do the cleaning up.
 ---@param time_symbols string[]
 ---@param win_width integer
 ---@param win_height integer
@@ -128,7 +138,7 @@ function Clock:open_clock_win(time_symbols, win_width, win_height)
   self.opts.win.anchor = "NW"
 
   local loc_preset =
-    get_win_loc_presets(win_width, win_height, ui.width, ui.height)[self.opts.loc_preset]
+      get_win_loc_presets(win_width, win_height, ui.width, ui.height)[self.opts.loc_preset]
   local win_config = vim.tbl_extend("force", {
     relative = "editor",
     width = win_width,
@@ -139,7 +149,6 @@ function Clock:open_clock_win(time_symbols, win_width, win_height)
     style = "minimal",
     border = "rounded",
   }, self.opts.win)
-  --- TODO: the window should be unmodifiable and readonly
   ---@diagnostic disable-next-line: param-type-mismatch
   local ok, win_id = pcall(vim.api.nvim_open_win, buf_id, false, win_config)
 
@@ -147,7 +156,9 @@ function Clock:open_clock_win(time_symbols, win_width, win_height)
     return false, -1, -1
   end
 
+  vim.api.nvim_set_option_value("readonly", false, { buf = buf_id })
   vim.api.nvim_buf_set_lines(buf_id, 0, -1, true, time_symbols)
+  vim.api.nvim_set_option_value("readonly", true, { buf = buf_id })
 
   return true, win_id, buf_id
 end
@@ -159,15 +170,14 @@ function Clock:update_clock_win(buf_id)
   end
 
   local lines, _, _ = build_clock_display(tostring(os.date("%H:%M:%S")))
+
+  vim.api.nvim_set_option_value("readonly", false, { buf = buf_id })
   vim.api.nvim_buf_set_lines(buf_id, 0, -1, true, lines)
+  vim.api.nvim_set_option_value("readonly", true, { buf = buf_id })
 end
 
 function Clock:close()
-  if self.timer ~= nil then
-    self.timer:stop()
-    self.timer:close()
-    self.timer = nil
-  end
+  stop_and_close_timer(self.timer)
 
   if vim.api.nvim_win_is_valid(self.win_id) then
     vim.api.nvim_win_close(self.win_id, true)
@@ -176,6 +186,13 @@ function Clock:close()
   if vim.api.nvim_buf_is_valid(self.buf_id) then
     vim.api.nvim_buf_delete(self.buf_id, { force = true })
   end
+end
+
+function Clock:new_timer()
+  stop_and_close_timer(self.timer)
+
+  local uv = vim.uv or vim.loop
+  self.timer = uv.new_timer()
 end
 
 function Clock:start()
@@ -189,11 +206,7 @@ function Clock:start()
     vim.api.nvim_buf_delete(self.buf_id, { force = true })
   end
 
-  if self.timer ~= nil then
-    self.timer:stop()
-    self.timer:close()
-    self.timer = nil
-  end
+  stop_and_close_timer(self.timer)
 
   local display, win_width, win_height = build_clock_display(tostring(os.date("%H:%M:%S")))
   local ok, win_id, buf_id = self:open_clock_win(display, win_width, win_height)
@@ -207,8 +220,7 @@ function Clock:start()
     return
   end
 
-  local uv = vim.uv or vim.loop
-  self.timer = uv.new_timer()
+  self:new_timer()
   if not self.timer then
     notify("Failed to start timer", vim.log.levels.ERROR)
     return
@@ -238,9 +250,7 @@ function Clock:set_alarm_at(alarm_time)
     notify("Invalid time format!", vim.log.levels.ERROR)
   end
 
-  vim.print(alarm_time)
   self.alarm_time = parse_time(alarm_time)
-  vim.print(self.alarm_time)
 end
 
 function Clock:check_alarm()
@@ -248,7 +258,8 @@ function Clock:check_alarm()
     return
   end
   local current = os.time()
-  if current == self.alarm_time then
+  local diff = current - self.alarm_time
+  if diff >= 0 and diff <= 3 then
     notify(self.alarm_opts.alarm_text, vim.log.levels.INFO)
     vim.system({ "mpv", self.alarm_opts.alarm_path }, {}, function(obj)
       if obj.code ~= 0 then
