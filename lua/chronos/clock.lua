@@ -5,11 +5,8 @@ local concat_symbols = require("chronos.clock_symbols").concat_symbols
 local digits = require("chronos.clock_symbols").digits
 local colon = require("chronos.clock_symbols").colon
 local DIGITS_MAX_WIDTH = require("chronos.clock_symbols").DIGITS_MAX_WIDTH
+local notify = require("chronos.utils").notify
 
-local notify = function(msg, type, opts)
-  opts = opts or {}
-  vim.schedule(function() vim.notify(msg, type, vim.tbl_extend("force", { title = "chronos.nvim" }, opts)) end)
-end
 
 ---@param time_str string
 ---@return table
@@ -87,6 +84,10 @@ function Clock:open_clock_win(time_symbols, win_width, win_height)
   local buf_id = vim.api.nvim_create_buf(false, true)
   local ui = vim.api.nvim_list_uis()[1]
 
+  -- `win_width` and `win_height` should not be set by user
+  -- to avoid incorrect display.
+  self.opts.win.width = win_width
+  self.opts.win.height = win_height
   local win_config = vim.tbl_extend("force", {
     relative = "editor",
     width = win_width,
@@ -138,6 +139,7 @@ end
 
 function Clock:start()
   -- guard
+  -- close previous window, buffer and timer if exist.
   if self.win_id and vim.api.nvim_win_is_valid(self.win_id) then
     vim.api.nvim_win_close(self.win_id, true)
   end
@@ -180,10 +182,6 @@ function Clock:start()
   )
 end
 
-local clock = Clock:new({
-  win = {},
-})
-
-M.clock = clock
+M.Clock = Clock
 
 return M
