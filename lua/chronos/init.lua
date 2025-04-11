@@ -14,7 +14,10 @@ local M = {
       border = "rounded",
     },
     alarm_opts = {
-      alarm_path = vim.fs.joinpath(vim.fn.stdpath("data"), "/chronos.nvim/sound/mixkit-morning-clock-alarm-1003.wav"),
+      alarm_path = vim.fs.joinpath(
+        vim.fn.stdpath("data"),
+        "/chronos.nvim/sound/mixkit-morning-clock-alarm-1003.wav"
+      ),
       alarm_text = "󰀠 ALARM!",
     },
   },
@@ -58,6 +61,5 @@ M.chronos_alarm_at = function(opts)
   assert(#args_splited <= 1, "At most one argument is allowed")
   M._clock:set_alarm_at(args_splited[1])
 end
-
 
 return M

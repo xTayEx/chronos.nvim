@@ -128,7 +128,7 @@ function Clock:open_clock_win(time_symbols, win_width, win_height)
   self.opts.win.anchor = "NW"
 
   local loc_preset =
-      get_win_loc_presets(win_width, win_height, ui.width, ui.height)[self.opts.loc_preset]
+    get_win_loc_presets(win_width, win_height, ui.width, ui.height)[self.opts.loc_preset]
   local win_config = vim.tbl_extend("force", {
     relative = "editor",
     width = win_width,
@@ -258,7 +258,6 @@ function Clock:check_alarm()
     self.alarm_time = nil
   end
 end
-
 
 M.Clock = Clock
 

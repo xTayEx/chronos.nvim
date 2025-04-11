@@ -10,4 +10,3 @@ vim.api.nvim_create_user_command("ChronosSetAlarmAt", require("chronos").chronos
   desc = "Set alarm at specified time. Format should be '%H:%M'.",
   nargs = "*",
 })
-
