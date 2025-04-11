@@ -7,7 +7,6 @@ local colon = require("chronos.clock_symbols").colon
 local DIGITS_MAX_WIDTH = require("chronos.clock_symbols").DIGITS_MAX_WIDTH
 local notify = require("chronos.utils").notify
 
-
 ---@param time_str string
 ---@return table
 ---@return integer win_width
