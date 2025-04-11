@@ -47,29 +47,37 @@ local build_clock_display = function(time_str)
 end
 
 ---@class ClockOpts
----@field time_format string
 ---@filed style string
 
 ---@class Clock
+---@field opts ClockOpts
+---@field buf_id integer|nil
+---@field win_id integer|nil
+---@field timer uv.uv_timer_t|nil
 local Clock = {}
 
-function Clock:new(o)
-  ---@type ClockOpts
-  self.opts = o or {
-    time_format = "%H:%M:%S",
-    style = "normal",
-  }
+---@param o? table
+---@param opts? ClockOpts
+function Clock:new(o, opts)
   o = o or {}
+  opts = opts or {}
+  o.opts = vim.tbl_extend("force", {
+    style = "normal",
+  }, opts)
+  o.buf_id = nil
+  o.win_id = nil
+  o.timer = nil
   self.__index = self
-  return setmetatable(o, self)
+  return setmetatable(o, { __index = Clock })
 end
 
 ---@param time_symbols string[]
----@param clock_opts ClockOpts
+---@param win_width integer
+---@param win_height integer
 ---@return boolean ok
 ---@return integer win_id
 ---@return integer buf_id
-function Clock:open_clock_win(time_symbols, win_width, win_height, clock_opts)
+function Clock:open_clock_win(time_symbols, win_width, win_height)
   local buf_id = vim.api.nvim_create_buf(false, true)
   local ui = vim.api.nvim_list_uis()[1]
 
@@ -101,7 +109,7 @@ function Clock:update_clock_win(buf_id)
     return
   end
 
-  local lines, _, _ = build_clock_display(tostring(os.date(self.opts.time_format)))
+  local lines, _, _ = build_clock_display(tostring(os.date("%H:%M:%S")))
   vim.api.nvim_buf_set_lines(buf_id, 0, -1, true, lines)
 end
 
@@ -123,8 +131,8 @@ end
 
 function Clock:start()
   local display, win_width, win_height =
-    build_clock_display(tostring(os.date(self.opts.time_format)))
-  local ok, win_id, buf_id = self:open_clock_win(display, win_width, win_height, self.opts)
+    build_clock_display(tostring(os.date("%H:%M:%S")))
+  local ok, win_id, buf_id = self:open_clock_win(display, win_width, win_height)
   self.win_id = win_id
   self.buf_id = buf_id
 
