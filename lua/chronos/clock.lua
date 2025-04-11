@@ -49,6 +49,7 @@ end
 
 ---@class ClockOpts
 ---@filed style string
+---@field loc_preset string
 ---@field win table
 
 ---@class Clock
@@ -63,14 +64,41 @@ local Clock = {}
 function Clock:new(opts, o)
   o = o or {}
   opts = opts or {}
-  o.opts = vim.tbl_extend("force", {
-    style = "normal",
-  }, opts)
+  o.opts = opts
   o.buf_id = nil
   o.win_id = nil
   o.timer = nil
   self.__index = self
   return setmetatable(o, { __index = Clock })
+end
+
+---@param win_width integer
+---@param win_height integer
+---@param ui_width integer
+---@param ui_height integer
+local get_win_loc_presets = function(win_width, win_height, ui_width, ui_height)
+  return {
+    center = {
+      col = ui_width / 2 - win_width / 2,
+      row = ui_height / 2 - win_height / 2,
+    },
+    top_left = {
+      col = 0,
+      row = 0,
+    },
+    bottom_left = {
+      col = 0,
+      row = ui_height - win_height,
+    },
+    top_right = {
+      col = ui_width - win_width,
+      row = 0,
+    },
+    bottom_right = {
+      col = ui_width - win_width,
+      row = ui_height - win_height,
+    },
+  }
 end
 
 ---@param time_symbols string[]
@@ -87,12 +115,16 @@ function Clock:open_clock_win(time_symbols, win_width, win_height)
   -- to avoid incorrect display.
   self.opts.win.width = win_width
   self.opts.win.height = win_height
+  self.opts.win.anchor = "NW"
+
+  local loc_preset =
+    get_win_loc_presets(win_width, win_height, ui.width, ui.height)[self.opts.loc_preset]
   local win_config = vim.tbl_extend("force", {
     relative = "editor",
     width = win_width,
     height = win_height,
-    col = ui.width / 2 - win_width / 2,
-    row = ui.height / 2 - win_height / 2,
+    col = loc_preset.col,
+    row = loc_preset.row,
     anchor = "NW",
     style = "minimal",
     border = "rounded",

@@ -5,6 +5,8 @@ local M = {
   ---@type Clock
   _clock = nil,
   config = {
+    loc_preset = "center",
+    style = "normal",
     win = {
       relative = "editor",
       anchor = "NW",
