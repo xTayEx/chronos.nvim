@@ -6,6 +6,11 @@ local digits = require("chronos.clock_symbols").digits
 local colon = require("chronos.clock_symbols").colon
 local DIGITS_MAX_WIDTH = require("chronos.clock_symbols").DIGITS_MAX_WIDTH
 
+local notify = function(msg, type, opts)
+  opts = opts or {}
+  vim.schedule(function() vim.notify(msg, type, vim.tbl_extend("force", { title = "chronos.nvim" }, opts)) end)
+end
+
 ---@param time_str string
 ---@return table
 ---@return integer win_width
@@ -48,6 +53,7 @@ end
 
 ---@class ClockOpts
 ---@filed style string
+---@field win table
 
 ---@class Clock
 ---@field opts ClockOpts
@@ -58,7 +64,7 @@ local Clock = {}
 
 ---@param o? table
 ---@param opts? ClockOpts
-function Clock:new(o, opts)
+function Clock:new(opts, o)
   o = o or {}
   opts = opts or {}
   o.opts = vim.tbl_extend("force", {
@@ -81,9 +87,7 @@ function Clock:open_clock_win(time_symbols, win_width, win_height)
   local buf_id = vim.api.nvim_create_buf(false, true)
   local ui = vim.api.nvim_list_uis()[1]
 
-  --- TODO: the window should be unmodifiable and readonly
-  ---@diagnostic disable-next-line: param-type-mismatch
-  local ok, win_id = pcall(vim.api.nvim_open_win, buf_id, false, {
+  local win_config = vim.tbl_extend("force", {
     relative = "editor",
     width = win_width,
     height = win_height,
@@ -92,7 +96,10 @@ function Clock:open_clock_win(time_symbols, win_width, win_height)
     anchor = "NW",
     style = "minimal",
     border = "rounded",
-  })
+  }, self.opts.win)
+  --- TODO: the window should be unmodifiable and readonly
+  ---@diagnostic disable-next-line: param-type-mismatch
+  local ok, win_id = pcall(vim.api.nvim_open_win, buf_id, false, win_config)
 
   if not ok then
     return false, -1, -1
@@ -113,7 +120,7 @@ function Clock:update_clock_win(buf_id)
   vim.api.nvim_buf_set_lines(buf_id, 0, -1, true, lines)
 end
 
-function Clock:cancle()
+function Clock:close()
   if self.timer ~= nil then
     self.timer:stop()
     self.timer:close()
@@ -130,20 +137,42 @@ function Clock:cancle()
 end
 
 function Clock:start()
-  local display, win_width, win_height =
-    build_clock_display(tostring(os.date("%H:%M:%S")))
+  -- guard
+  if self.win_id and vim.api.nvim_win_is_valid(self.win_id) then
+    vim.api.nvim_win_close(self.win_id, true)
+  end
+
+  if self.buf_id and vim.api.nvim_buf_is_valid(self.buf_id) then
+    vim.api.nvim_buf_delete(self.buf_id, { force = true })
+  end
+
+  if self.timer ~= nil then
+    self.timer:stop()
+    self.timer:close()
+    self.timer = nil
+  end
+
+  local display, win_width, win_height = build_clock_display(tostring(os.date("%H:%M:%S")))
   local ok, win_id, buf_id = self:open_clock_win(display, win_width, win_height)
   self.win_id = win_id
   self.buf_id = buf_id
 
   if not ok then
-    vim.notify("Failed to open clock window", vim.log.levels.ERROR, { title = "Chronos.nvim" })
+    notify("Failed to open clock window", vim.log.levels.ERROR)
+    self.win_id = nil
+    self.buf_id = nil
+    return
   end
+
   local uv = vim.uv or vim.loop
   self.timer = uv.new_timer()
+  if not self.timer then
+    notify("Failed to start timer", vim.log.levels.ERROR)
+    return
+  end
+
   self.timer:start(
     0,
-    -- (60 - tonumber(os.date("%S"))) * 1000,
     1000,
     vim.schedule_wrap(function()
       self:update_clock_win(buf_id)
@@ -151,7 +180,9 @@ function Clock:start()
   )
 end
 
-local clock = Clock:new()
+local clock = Clock:new({
+  win = {},
+})
 
 M.clock = clock
 

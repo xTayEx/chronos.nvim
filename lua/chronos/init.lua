@@ -7,7 +7,7 @@ M.chronos_open = function()
 end
 
 M.chronos_close = function()
-  clock:cancle()
+  clock:close()
 end
 
 return M
