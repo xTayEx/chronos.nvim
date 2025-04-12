@@ -19,6 +19,19 @@ A simple plugin to show a clock in a floating window. I create this plugin just 
 - neovim>=v0.11.0. Older version may work.
 - mpv (for playing alarm sound.)
 
+## Installation
+
+### 💤 Lazy.nvim
+
+```lua
+
+{
+  "xTayEx/chronos.nvim",
+  opts = {}, -- `opts` field is necenarry for calling the `setup` function.
+}
+
+```
+
 ## Configuration
 
 chronos.nvim comes with the following default configuration.
