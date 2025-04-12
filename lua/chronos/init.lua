@@ -25,7 +25,7 @@ local M = {
 
 ---@param user_config Config
 M.setup = function(user_config)
-  M.config = vim.tbl_extend("force", M.config, user_config or {})
+  M.config = vim.tbl_deep_extend("force", M.config, user_config or {})
   local alarm_path = M.config.alarm_opts.alarm_path
   local alarm_dir = vim.fs.dirname(alarm_path)
   if vim.fn.isdirectory(alarm_dir) == 0 then
@@ -60,6 +60,22 @@ M.chronos_alarm_at = function(opts)
   local args_splited = vim.split(args, " ", { trimempty = true })
   assert(#args_splited <= 1, "At most one argument is allowed")
   M._clock:set_alarm_at(args_splited[1])
+end
+
+M.chronos_show = function ()
+  if M._clock == nil then
+    notify("Clock is nil! It seems that setup() method is not called.", vim.log.levels.ERROR)
+    return
+  end
+  M._clock:show()
+end
+
+M.chronos_hide = function ()
+  if M._clock == nil then
+    notify("Clock is nil! It seems that setup() method is not called.", vim.log.levels.ERROR)
+    return
+  end
+  M._clock:hide()
 end
 
 return M

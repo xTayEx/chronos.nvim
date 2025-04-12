@@ -9,12 +9,14 @@ local notify = require("chronos.utils").notify
 local parse_time = require("chronos.utils").parse_time
 
 ---@param timer uv.uv_timer_t|nil
+---@return nil
 local stop_and_close_timer = function(timer)
   if timer ~= nil then
     timer:stop()
     timer:close()
-    timer = nil
   end
+
+  return nil
 end
 
 ---@param time_str string
@@ -71,6 +73,9 @@ end
 ---@field opts ClockOpts
 ---@field buf_id integer|nil
 ---@field win_id integer|nil
+---@field win_width integer|nil
+---@field win_height integer|nil
+---@field win_config table|nil
 ---@field timer uv.uv_timer_t|nil
 ---@field alarm_time integer|nil
 ---@field alarm_opts AlarmOpts|nil
@@ -85,6 +90,9 @@ function Clock:new(opts, o)
   o.buf_id = nil
   o.win_id = nil
   o.timer = nil
+  o.win_width = nil
+  o.win_height = nil
+  o.win_config = nil
   o.alarm_time = nil
   o.alarm_opts = opts.alarm_opts
   self.__index = self
@@ -127,7 +135,7 @@ end
 ---@return boolean ok
 ---@return integer win_id
 ---@return integer buf_id
-function Clock:open_clock_win(time_symbols, win_width, win_height)
+function Clock:open_init_clock_win(time_symbols, win_width, win_height)
   local buf_id = vim.api.nvim_create_buf(false, true)
   local ui = vim.api.nvim_list_uis()[1]
 
@@ -139,7 +147,7 @@ function Clock:open_clock_win(time_symbols, win_width, win_height)
 
   local loc_preset =
       get_win_loc_presets(win_width, win_height, ui.width, ui.height)[self.opts.loc_preset]
-  local win_config = vim.tbl_extend("force", {
+  local win_config = vim.tbl_deep_extend("force", {
     relative = "editor",
     width = win_width,
     height = win_height,
@@ -149,6 +157,8 @@ function Clock:open_clock_win(time_symbols, win_width, win_height)
     style = "minimal",
     border = "rounded",
   }, self.opts.win)
+  self.win_config = win_config
+
   ---@diagnostic disable-next-line: param-type-mismatch
   local ok, win_id = pcall(vim.api.nvim_open_win, buf_id, false, win_config)
 
@@ -177,19 +187,19 @@ function Clock:update_clock_win(buf_id)
 end
 
 function Clock:close()
-  stop_and_close_timer(self.timer)
+  self.timer = stop_and_close_timer(self.timer)
 
-  if vim.api.nvim_win_is_valid(self.win_id) then
+  if self.win_id and vim.api.nvim_win_is_valid(self.win_id) then
     vim.api.nvim_win_close(self.win_id, true)
   end
 
-  if vim.api.nvim_buf_is_valid(self.buf_id) then
+  if self.win_id and vim.api.nvim_buf_is_valid(self.buf_id) then
     vim.api.nvim_buf_delete(self.buf_id, { force = true })
   end
 end
 
 function Clock:new_timer()
-  stop_and_close_timer(self.timer)
+  self.timer = stop_and_close_timer(self.timer)
 
   local uv = vim.uv or vim.loop
   self.timer = uv.new_timer()
@@ -198,6 +208,7 @@ end
 function Clock:start()
   -- guard
   -- close previous window, buffer and timer if exist.
+  -- there should always only one buffer, window and timer.
   if self.win_id and vim.api.nvim_win_is_valid(self.win_id) then
     vim.api.nvim_win_close(self.win_id, true)
   end
@@ -206,10 +217,13 @@ function Clock:start()
     vim.api.nvim_buf_delete(self.buf_id, { force = true })
   end
 
-  stop_and_close_timer(self.timer)
+  self.timer = stop_and_close_timer(self.timer)
 
   local display, win_width, win_height = build_clock_display(tostring(os.date("%H:%M:%S")))
-  local ok, win_id, buf_id = self:open_clock_win(display, win_width, win_height)
+  self.win_width = win_width
+  self.win_height = win_height
+
+  local ok, win_id, buf_id = self:open_init_clock_win(display, win_width, win_height)
   self.win_id = win_id
   self.buf_id = buf_id
 
@@ -234,6 +248,18 @@ function Clock:start()
       self:check_alarm()
     end)
   )
+end
+
+function Clock:hide()
+  if self.win_id and vim.api.nvim_win_is_valid(self.win_id) then
+    vim.api.nvim_win_close(self.win_id, true)
+    self.win_id = nil
+  end
+end
+
+function Clock:show()
+  local win_id = vim.api.nvim_open_win(self.buf_id, false, self.win_config)
+  self.win_id = win_id
 end
 
 ---@param alarm_time string
