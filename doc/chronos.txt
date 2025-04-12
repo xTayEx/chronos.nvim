@@ -42,7 +42,6 @@ chronos.nvim comes with the following default configuration.
                              --- "bottom_right"
       win = {
         relative = "editor",
-        anchor = "NW",
         style = "minimal",
         border = "rounded",
         --- (the same as opts for `nvim_open_win`, except `anchor`, `col`, `row`, `width` and `height`)
