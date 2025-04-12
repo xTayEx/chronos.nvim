@@ -4,12 +4,16 @@ A simple plugin to show a clock in a floating window. I create this plugin just 
 
 ## Usage
 
-- `:ChronosOpen`: Open the clock.
-- `:ChronosClose`: Close the clock.
+- `:ChronosOpen`: Turn on the clock.
+- `:ChronosClose`: Turn off the clock.
+- `:ChronosHide`: Hide the alarm window.
+- `:ChronosShow`: Show the alarm window.
+- `:ChronosSetAlarmAt`: Set alarm at specified time. Time format should be `%H:%M`, in 24-hour notation. (e.g. "14:05")
 
 ## Dependencies
 
-No extra dependencies (as for now). Only tested on neovim v0.11.0. Older version may work.
+- neovim>=v0.11.0. Older version may work.
+- mpv (for playing alarm sound.)
 
 ## Configuration
 

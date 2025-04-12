@@ -128,7 +128,6 @@ local get_win_loc_presets = function(win_width, win_height, ui_width, ui_height)
   }
 end
 
---- TODO: After pressing `q` in the clock window, do the cleaning up.
 ---@param time_symbols string[]
 ---@param win_width integer
 ---@param win_height integer
