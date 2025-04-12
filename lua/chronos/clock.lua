@@ -137,6 +137,13 @@ end
 ---@return integer buf_id
 function Clock:open_init_clock_win(time_symbols, win_width, win_height)
   local buf_id = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_keymap(buf_id, "n", "q", "", {
+    desc = "Hide the window",
+    callback = function()
+      self:hide()
+    end,
+  })
+
   local ui = vim.api.nvim_list_uis()[1]
 
   -- `win_width` and `win_height` should not be set by user
