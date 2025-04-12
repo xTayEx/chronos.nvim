@@ -270,18 +270,6 @@ end
 
 ---@param alarm_time string
 function Clock:set_alarm_at(alarm_time)
-  local pattern = "^(%d+):(%d+)$"
-  local hour, min = alarm_time:match(pattern)
-  if not hour or not min then
-    notify("Invalid time format! Use %H:%M", vim.log.levels.ERROR)
-    return
-  end
-
-  hour, min = tonumber(hour), tonumber(min)
-  if hour < 0 or hour >= 24 or min < 0 or min >= 60 then
-    notify("Invalid time format!", vim.log.levels.ERROR)
-  end
-
   self.alarm_time = parse_time(alarm_time)
 end
 
