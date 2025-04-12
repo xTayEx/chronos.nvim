@@ -2,6 +2,10 @@
 
 A simple plugin to show a clock in a floating window. I create this plugin just for fun 😊.
 
+<!-- <center> -->
+<!-- ![](doc/assets/demo.png) -->
+<!-- </center> -->
+
 ## Usage
 
 - `:ChronosOpen`: Turn on the clock.
@@ -26,7 +30,6 @@ chronos.nvim comes with the following default configuration.
                          --- "bottom_right"
   win = {
     relative = "editor",
-    anchor = "NW",
     style = "minimal",
     border = "rounded",
     --- (the same as opts for `nvim_open_win`, except `anchor`, `col`, `row`, `width` and `height`)
