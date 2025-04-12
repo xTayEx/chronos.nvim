@@ -62,7 +62,7 @@ M.chronos_alarm_at = function(opts)
   M._clock:set_alarm_at(args_splited[1])
 end
 
-M.chronos_show = function ()
+M.chronos_show = function()
   if M._clock == nil then
     notify("Clock is nil! It seems that setup() method is not called.", vim.log.levels.ERROR)
     return
@@ -70,7 +70,7 @@ M.chronos_show = function ()
   M._clock:show()
 end
 
-M.chronos_hide = function ()
+M.chronos_hide = function()
   if M._clock == nil then
     notify("Clock is nil! It seems that setup() method is not called.", vim.log.levels.ERROR)
     return
