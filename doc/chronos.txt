@@ -6,6 +6,7 @@ Table of Contents                                  *chronos-table-of-contents*
 1. chronos.nvim                                         |chronos-chronos.nvim|
   - Usage                                         |chronos-chronos.nvim-usage|
   - Dependencies                           |chronos-chronos.nvim-dependencies|
+  - Installation                           |chronos-chronos.nvim-installation|
   - Configuration                         |chronos-chronos.nvim-configuration|
   - Roadmap                                     |chronos-chronos.nvim-roadmap|
 
@@ -29,6 +30,20 @@ DEPENDENCIES                               *chronos-chronos.nvim-dependencies*
 
 - neovim>=v0.11.0. Older version may work.
 - mpv (for playing alarm sound.)
+
+
+INSTALLATION                               *chronos-chronos.nvim-installation*
+
+
+LAZY.NVIM ~
+
+>lua
+    
+    {
+      "xTayEx/chronos.nvim",
+      opts = {}, -- `opts` field is necenarry for calling the `setup` function.
+    }
+<
 
 
 CONFIGURATION                             *chronos-chronos.nvim-configuration*
