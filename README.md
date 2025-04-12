@@ -2,9 +2,9 @@
 
 A simple plugin to show a clock in a floating window. I create this plugin just for fun 😊.
 
-<!-- <center> -->
-<!-- ![](doc/assets/demo.png) -->
-<!-- </center> -->
+<center>
+  <image src="https://raw.githubusercontent.com/xTayEx/chronos.nvim/refs/heads/main/doc/assets/demo.png"></image>
+</center>
 
 ## Usage
 
