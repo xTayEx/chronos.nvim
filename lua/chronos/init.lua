@@ -22,10 +22,9 @@ local M = {
     style = {
       digits = "default",
       colon = "default",
-    }
+    },
   },
 }
-
 
 ---@param user_config Config
 M.setup = function(user_config)
