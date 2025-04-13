@@ -1,4 +1,4 @@
-*chronos.txt*          For Neovim >= 0.10.4         Last change: 2025 April 12
+*chronos.txt*          For Neovim >= 0.10.4         Last change: 2025 April 13
 
 ==============================================================================
 Table of Contents                                  *chronos-table-of-contents*
@@ -64,6 +64,14 @@ chronos.nvim comes with the following default configuration.
       alarm_opts = {
         alarm_path = vim.fs.joinpath(vim.fn.stdpath("data"), "/chronos.nvim/sound/mixkit-morning-clock-alarm-1003.wav"), --- path to alarm sound
         alarm_text = "󰀠 ALARM!" --- alarm notification text
+      },
+      style = {
+        ---@type string|table
+        digits = "default", --- To use custom digit style, pass a list of ascii art strings. 
+                            --- See https://github.com/xTayEx/chronos.nvim/blob/b35ee18b39f79a50bda1597e5e0103f92e47d68d/lua/chronos/clock_symbols.lua#L3 for example.
+        ---@type string
+        colon = "default", --- To use custom colon style, pass a string of ascii art string.
+                           --- See https://github.com/xTayEx/chronos.nvim/blob/b35ee18b39f79a50bda1597e5e0103f92e47d68d/lua/chronos/clock_symbols.lua#L87 for example.
       }
     }
 <
@@ -71,7 +79,7 @@ chronos.nvim comes with the following default configuration.
 
 ROADMAP                                         *chronos-chronos.nvim-roadmap*
 
-- More clock styles.
+- Configurable clock styles.
 - Support alarm with audio.
 - Support different clock location.
 
