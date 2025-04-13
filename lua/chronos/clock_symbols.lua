@@ -7,89 +7,77 @@ M.digits = {
 ██║██╔██║
 ████╔╝██║
 ╚██████╔╝
- ╚═════╝
-  ]],
+ ╚═════╝]],
   [[
  ██╗
 ███║
 ╚██║
  ██║
  ██║
- ╚═╝
-  ]],
+ ╚═╝]],
   [[
 ██████╗
 ╚════██╗
  █████╔╝
 ██╔═══╝
 ███████╗
-╚══════╝
-  ]],
+╚══════╝]],
   [[
 ██████╗
 ╚════██╗
  █████╔╝
  ╚═══██╗
 ██████╔╝
-╚═════╝
-  ]],
+╚═════╝]],
   [[
 ██╗  ██╗
 ██║  ██║
 ███████║
 ╚════██║
      ██║
-     ╚═╝
-  ]],
+     ╚═╝]],
   [[
 ███████╗
 ██╔════╝
 ███████╗
 ╚════██║
 ███████║
-╚══════╝
-  ]],
+╚══════╝]],
   [[
  ██████╗
 ██╔════╝
 ███████╗
 ██╔═══██╗
 ╚██████╔╝
- ╚═════╝
-  ]],
+ ╚═════╝]],
   [[
 ███████╗
 ╚════██║
     ██╔╝
    ██╔╝
    ██║
-   ╚═╝
-  ]],
+   ╚═╝]],
   [[
  █████╗
 ██╔══██╗
 ╚█████╔╝
 ██╔══██╗
 ╚█████╔╝
- ╚════╝
-  ]],
+ ╚════╝]],
   [[
  █████╗
 ██╔══██╗
 ╚██████║
  ╚═══██║
  █████╔╝
- ╚════╝
-  ]],
+ ╚════╝]],
 }
-M.DIGITS_MAX_WIDTH = 10
 
 M.colon = [[
 ██╗
 ╚═╝
 ██╗
-╚═╝
-]]
+╚═╝]]
 
 ---@class SymbolDimension
 ---@field width integer
@@ -140,13 +128,13 @@ function Symbol:pad_to_cell(width, height)
 
   local lines = vim.split(self.symbol, "\n", { trimempty = true })
 
-  -- pad tail for alignment
+  --- pad tail for alignment
   for i = 1, #lines do
     local visual_width = vim.api.nvim_strwidth(lines[i])
     lines[i] = lines[i] .. string.rep(" ", dimension.width - visual_width)
   end
 
-  -- pad width
+  --- pad width
   for i = 1, #lines do
     lines[i] = string.rep(" ", width - dimension.width) .. lines[i]
   end

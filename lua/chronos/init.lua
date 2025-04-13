@@ -6,7 +6,6 @@ local M = {
   _clock = nil,
   config = {
     loc_preset = "center",
-    style = "normal",
     win = {
       relative = "editor",
       anchor = "NW",
@@ -20,8 +19,13 @@ local M = {
       ),
       alarm_text = "󰀠 ALARM!",
     },
+    style = {
+      digits = "default",
+      colon = "default",
+    }
   },
 }
+
 
 ---@param user_config Config
 M.setup = function(user_config)

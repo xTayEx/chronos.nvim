@@ -2,9 +2,8 @@ local M = {}
 
 local Symbol = require("chronos.clock_symbols").Symbol
 local concat_symbols = require("chronos.clock_symbols").concat_symbols
-local digits = require("chronos.clock_symbols").digits
-local colon = require("chronos.clock_symbols").colon
-local DIGITS_MAX_WIDTH = require("chronos.clock_symbols").DIGITS_MAX_WIDTH
+local default_digits = require("chronos.clock_symbols").digits
+local default_colon = require("chronos.clock_symbols").colon
 local notify = require("chronos.utils").notify
 local parse_time = require("chronos.utils").parse_time
 
@@ -17,86 +16,6 @@ local stop_and_close_timer = function(timer)
   end
 
   return nil
-end
-
----@param time_str string
----@return table
----@return integer win_width
----@return integer win_height
-local build_clock_display = function(time_str)
-  local time_symbols = {}
-  for i = 1, #time_str do
-    local ch = time_str:sub(i, i)
-    time_symbols[#time_symbols + 1] = Symbol:new(ch, digits, colon)
-  end
-
-  local max_height = 1
-  for _, symbol in ipairs(time_symbols) do
-    local dimension = symbol:get_dimensions()
-    max_height = vim.fn.max({ max_height, dimension.height })
-  end
-
-  local win_width = 0
-  for _, symbol in ipairs(time_symbols) do
-    local dimension = symbol:get_dimensions()
-    local symbol_width = dimension.width
-
-    if DIGITS_MAX_WIDTH == symbol_width then
-      symbol_width = symbol_width + 1
-    else
-      symbol_width = DIGITS_MAX_WIDTH
-    end
-    if symbol.ori_symbol ~= ":" then
-      win_width = win_width + symbol_width
-      symbol:pad_to_cell(symbol_width, max_height)
-    else
-      win_width = win_width + dimension.width + 1
-      symbol:pad_to_cell(dimension.width + 1, max_height)
-    end
-  end
-  local lines = concat_symbols(time_symbols)
-
-  return lines, win_width, max_height
-end
-
----@class AlarmOpts
----@field alarm_path string
----@field alarm_text string
-
----@class ClockOpts
----@filed style string
----@field loc_preset string
----@field win table
----@field alarm_opts AlarmOpts
-
----@class Clock
----@field opts ClockOpts
----@field buf_id integer|nil
----@field win_id integer|nil
----@field win_width integer|nil
----@field win_height integer|nil
----@field win_config table|nil
----@field timer uv.uv_timer_t|nil
----@field alarm_time integer|nil
----@field alarm_opts AlarmOpts|nil
-local Clock = {}
-
----@param o? table
----@param opts? ClockOpts
-function Clock:new(opts, o)
-  o = o or {}
-  opts = opts or {}
-  o.opts = opts
-  o.buf_id = nil
-  o.win_id = nil
-  o.timer = nil
-  o.win_width = nil
-  o.win_height = nil
-  o.win_config = nil
-  o.alarm_time = nil
-  o.alarm_opts = opts.alarm_opts
-  self.__index = self
-  return setmetatable(o, { __index = Clock })
 end
 
 ---@param win_width integer
@@ -128,6 +47,96 @@ local get_win_loc_presets = function(win_width, win_height, ui_width, ui_height)
   }
 end
 
+---@class AlarmOpts
+---@field alarm_path string
+---@field alarm_text string
+
+---@class ClockOpts
+---@field loc_preset string
+---@field win table
+---@field alarm_opts AlarmOpts
+---@field style ClockStyle
+
+---@class ClockStyle
+---@field digits string|table
+---@field colon string|table
+
+---@class Clock
+---@field opts ClockOpts
+---@field buf_id integer|nil
+---@field win_id integer|nil
+---@field win_width integer|nil
+---@field win_height integer|nil
+---@field win_config table|nil
+---@field timer uv.uv_timer_t|nil
+---@field alarm_time integer|nil
+---@field alarm_opts AlarmOpts|nil
+local Clock = {}
+
+---@param o? table
+---@param opts? ClockOpts
+function Clock:new(opts, o)
+  o = o or {}
+  opts = opts or {}
+  o.opts = opts
+  o.buf_id = nil
+  o.win_id = nil
+  o.timer = nil
+  o.win_width = nil
+  o.win_height = nil
+  o.win_config = nil
+  o.alarm_time = nil
+  o.alarm_opts = opts.alarm_opts
+  o.style = opts.style
+  self.__index = self
+  return setmetatable(o, { __index = Clock })
+end
+
+---@param time_str string
+---@return table
+---@return integer win_width
+---@return integer win_height
+function Clock:build_clock_display(time_str)
+  local time_symbols = {}
+  local max_width = 1
+  local max_height = 1
+  for i = 1, #time_str do
+    local ch = time_str:sub(i, i)
+
+    local digits = nil
+    local colon = nil
+    if self.opts.style.digits == "default" then
+      digits = default_digits
+      colon = default_colon
+    else
+      digits = self.opts.style.digits
+      colon = self.opts.style.colon
+    end
+    local new_symbol = Symbol:new(ch, digits, colon)
+    time_symbols[#time_symbols + 1] = new_symbol
+
+    local dimension = new_symbol:get_dimensions()
+    max_height = vim.fn.max({ max_height, dimension.height })
+    max_width = vim.fn.max({ max_width, dimension.width })
+  end
+
+  local win_width = 0
+  for _, symbol in ipairs(time_symbols) do
+    local dimension = symbol:get_dimensions()
+
+    if symbol.ori_symbol ~= ":" then
+      win_width = win_width + (max_width + 1)
+      symbol:pad_to_cell(max_width + 1, max_height)
+    else
+      win_width = win_width + dimension.width + 1
+      symbol:pad_to_cell(dimension.width + 1, max_height)
+    end
+  end
+  local lines = concat_symbols(time_symbols)
+
+  return lines, win_width, max_height
+end
+
 ---@param time_symbols string[]
 ---@param win_width integer
 ---@param win_height integer
@@ -152,7 +161,7 @@ function Clock:open_init_clock_win(time_symbols, win_width, win_height)
   self.opts.win.anchor = "NW"
 
   local loc_preset =
-    get_win_loc_presets(win_width, win_height, ui.width, ui.height)[self.opts.loc_preset]
+      get_win_loc_presets(win_width, win_height, ui.width, ui.height)[self.opts.loc_preset]
   local win_config = vim.tbl_deep_extend("force", {
     relative = "editor",
     width = win_width,
@@ -185,7 +194,7 @@ function Clock:update_clock_win(buf_id)
     return
   end
 
-  local lines, _, _ = build_clock_display(tostring(os.date("%H:%M:%S")))
+  local lines, _, _ = self:build_clock_display(tostring(os.date("%H:%M:%S")))
 
   vim.api.nvim_set_option_value("readonly", false, { buf = buf_id })
   vim.api.nvim_buf_set_lines(buf_id, 0, -1, true, lines)
@@ -225,7 +234,7 @@ function Clock:start()
 
   self.timer = stop_and_close_timer(self.timer)
 
-  local display, win_width, win_height = build_clock_display(tostring(os.date("%H:%M:%S")))
+  local display, win_width, win_height = self:build_clock_display(tostring(os.date("%H:%M:%S")))
   self.win_width = win_width
   self.win_height = win_height
 
